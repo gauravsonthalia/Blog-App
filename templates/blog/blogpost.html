@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %} Blog Post {% endblock title %}
+{% block body %}
+{% load humanize %}
+{% load extras %}
+<div class="container">
+  <div class="m-3 blog-main bg-light" style="box-shadow: -5px -5px 15px #ffffff25, 3px 3px 15px #00000090; border-radius: 5px;">
+    <div class="blog-post">
+      <h2 class="blog-post-title p-3">{{post.title}}</h2>
+      <p class="blog-post-meta m-3">{{post.timeStamp}} by <a href="#">{{post.author|title}}</a></p>
+      <p class="m-3 pb-3">{{post.content}}</p>
+    </div>
+  </div>
+  {% if user.is_authenticated %}
+  <div class="my-2">
+  <div class="container">
+    <h2>Comments ({{comment.count}})</h2>
+    <form action="/blog/postComment" method="post">{% csrf_token %}
+      <div class="form-group">
+        <input type="text" class="form-control" name="comment" 
+        placeholder='Enter Your Comment'>
+      </div>
+      <input type="hidden" name="post_sno" value={{post.serial_no}}>
+      <input type="hidden" name="parentSerial_number" value=" ">
+      <button type="submit" class="btn btn-primary mb-2">Submit</button>
+    </form>
+  </div>
+  {% else %}
+  <div class='continer m-3'>
+  <h2>Please login to post a comment</h2>
+  </div>
+  {% endif %}
+    {% for comment in comment %}
+      <div class="row m-3">
+        <div class="col-md-1 w-100">
+        <img src="/static/img/user.png" class="border border-dark rounded-circle w-100 p-2"></div>
+        <div class="col-md-11">
+          <b>{{comment.user.username|title}}</b>  <span style="font-size: 14px;">{{comment.timeStamp|naturaltime}}</span>
+          <div>{{comment.comment}}</div>
+          <div class="reply mx-0" >
+              <button class="btn btn-sm btn-primary" type="button" data-toggle="collapse" data-target="#replyBox{{comment.serial_number}}" aria-expanded="false" aria-controls="replyBox{{comment.serial_number}}">Reply
+              </button>
+            <div class="collapse" id="replyBox{{comment.serial_number}}" >
+              <div class="my-2" style= " background-color: darkgrey;">
+                <form action="/blog/postComment" method="post" >{% csrf_token %}
+                  <div class="form-group" >
+                  <label for="reply">Post a Reply</label>
+                    <input type="text" class="form-control" name="comment" 
+                      placeholder='Enter Your Comment'>
+                      <input type="hidden" name="parentSerial_number" value="{{comment.serial_number}}">
+                  </div>
+                  <input type="hidden" name="post_sno" value={{post.serial_no}}>
+                  <button type="submit" class="btn btn-primary mb-2">Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="replies my-2">
+            {% for reply in reply_dict|get_val:comment.serial_number  %}
+              {{reply}} <br>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+</div>
+
+{% endblock body %}
